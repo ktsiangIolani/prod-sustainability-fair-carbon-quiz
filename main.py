@@ -64,9 +64,9 @@ async def scoreboard_page(request: Request):
 
 class SubmitPayload(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    class_year: str = Field(..., pattern=r"^(\d{2}|faculty|guest)$")
+    class_year: str = Field(..., regex=r"^(\d{2}|faculty|guest)$")
     email: str = Field(..., min_length=1, max_length=200)
-    answers: list[float] = Field(..., min_length=1)
+    answers: list[float] = Field(..., min_items=1)
 
 
 @app.post("/submit")
