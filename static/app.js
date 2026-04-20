@@ -326,18 +326,30 @@ function initStartScreen() {
     e.target.classList.remove('input-error');
   });
 
+  document.getElementById('input-email').addEventListener('input', e => {
+    e.target.classList.remove('input-error');
+  });
+
   document.getElementById('btn-start').addEventListener('click', () => {
     const classInput = document.getElementById('input-class');
+    const emailInput = document.getElementById('input-email');
     const classVal   = classInput.value;
+    const emailVal   = emailInput.value.trim();
+
+    let hasError = false;
     if (!classVal) {
       classInput.classList.add('input-error');
-      classInput.focus();
-      return;
+      if (!hasError) { classInput.focus(); hasError = true; }
     }
+    if (!emailVal) {
+      emailInput.classList.add('input-error');
+      if (!hasError) { emailInput.focus(); hasError = true; }
+    }
+    if (hasError) return;
 
     state.name      = nameInput.value || randomName();
     state.classYear = classVal;
-    state.email     = document.getElementById('input-email').value.trim();
+    state.email     = emailVal;
 
     const total = window.QUIZ_QUESTIONS.length;
     state.currentQuestion = 0;
@@ -392,7 +404,7 @@ async function submitQuiz() {
       body:    JSON.stringify({
         name:       state.name,
         class_year: state.classYear,
-        email:      state.email || undefined,
+        email:      state.email,
         answers:    state.answers,
       }),
     });
@@ -415,11 +427,17 @@ async function submitQuiz() {
 // ─────────────────────────────────────────────────
 // Result Screen
 // ─────────────────────────────────────────────────
+function formatClassYear(val) {
+  if (val === 'faculty') return 'Faculty/Staff';
+  if (val === 'guest')   return 'Guest';
+  return `C/O ʻ${val}`;
+}
+
 function renderResultScreen() {
   const dc = state.dailyCo2e;
 
   document.getElementById('result-name').textContent =
-    `${state.name} '${state.classYear}`;
+    `${state.name} · ${formatClassYear(state.classYear)}`;
 
   const badge    = document.getElementById('result-tier');
   badge.textContent = state.tier;
@@ -614,7 +632,7 @@ async function initScoreboard() {
         <td>${rankCell}</td>
         <td>${earthCell}</td>
         <td>${escapeHtml(entry.name)}</td>
-        <td>'${escapeHtml(entry.class_year)}</td>
+        <td>${escapeHtml(formatClassYear(entry.class_year))}</td>
         <td><span class="co2e-value">${fmt(entry.daily_co2e, 1)}</span></td>
         <td>${tierBadge}</td>
       `;

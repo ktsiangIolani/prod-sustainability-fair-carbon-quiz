@@ -29,7 +29,7 @@ def init_db():
         conn.commit()
 
 
-def insert_score(name: str, class_year: str, email: str | None, daily_co2e: float, tier: str) -> int:
+def insert_score(name: str, class_year: str, email: str, daily_co2e: float, tier: str) -> int:
     sql = """
         INSERT INTO scores (name, class_year, email, daily_co2e, tier, created_at)
         VALUES (?, ?, ?, ?, ?, ?)

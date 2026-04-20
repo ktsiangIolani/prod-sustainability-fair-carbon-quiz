@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Optional
 
 import yaml
 from fastapi import FastAPI, Request
@@ -65,8 +64,8 @@ async def scoreboard_page(request: Request):
 
 class SubmitPayload(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    class_year: str = Field(..., pattern=r"^(\d{2}|faculty|admin|other)$")
-    email: Optional[str] = None
+    class_year: str = Field(..., pattern=r"^(\d{2}|faculty|guest)$")
+    email: str = Field(..., min_length=1, max_length=200)
     answers: list[float] = Field(..., min_length=1)
 
 
@@ -77,7 +76,7 @@ async def submit_quiz(payload: SubmitPayload):
     database.insert_score(
         name=payload.name,
         class_year=payload.class_year,
-        email=payload.email or None,
+        email=payload.email,
         daily_co2e=daily_co2e,
         tier=tier,
     )

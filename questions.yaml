@@ -35,7 +35,7 @@ questions:
       - label: "Carpool with others"
         score: 3
         co2e: 0.61
-      - label: "Driven alone in a car"
+      - label: "Personal/Family Vehicle (without carpooling)"
         score: 5
         co2e: 1.52
 
