@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
+import requests
 
 import database
 
@@ -68,6 +69,23 @@ class SubmitPayload(BaseModel):
     email: str = Field(..., min_length=1, max_length=200)
     answers: list[float] = Field(..., min_items=1)
 
+def send_data_to_google_sheet(name, class_year, email, daily_co2e, tier, answers):
+    GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBtQLvhZmNfHignczocFuBOKcoplFqKJpZqqhkqwXk8koUuNIwII97n9iuZwr3GUk1gw/exec"
+    payload = {
+        "name": name,
+        "class_year": class_year,
+        "email": email,
+        "daily_co2e": daily_co2e,
+        "tier": tier,
+        "answers": answers
+    }
+    response = requests.post(
+        GOOGLE_SCRIPT_URL,
+        json=payload,
+        timeout=10,
+    )
+    print(response.json())
+    return response.json()
 
 @app.post("/submit")
 async def submit_quiz(payload: SubmitPayload):
@@ -80,13 +98,24 @@ async def submit_quiz(payload: SubmitPayload):
         daily_co2e=daily_co2e,
         tier=tier,
     )
+    
     rank = database.get_rank_for_score(daily_co2e)
+    try:
+        send_data_to_google_sheet(
+            payload.name, 
+            payload.class_year, 
+            payload.email, 
+            daily_co2e, 
+            tier,
+            payload.answers
+        )
+    except Exception as e:
+        return print({"ok": False, "error": f"Google Sheets write failed: {str(e)}"}), 500
     return JSONResponse({
         "daily_co2e": daily_co2e,
         "tier": tier,
         "rank": rank,
     })
-
 
 @app.get("/api/scores")
 async def api_scores():
